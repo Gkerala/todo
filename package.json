@@ -7,10 +7,13 @@
     "dev:phone": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:rls": "node --env-file=.env.local scripts/rls-test.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.3",
     "react": "19.3.0",

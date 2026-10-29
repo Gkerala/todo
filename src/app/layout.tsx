@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import UserMenu from "@/components/UserMenu";
 import "./globals.css";
 import styles from "./layout.module.css";
 
@@ -29,6 +31,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/routines">루틴 관리</Link>
             </nav>
           </header>
+          <Suspense fallback={null}>
+            <UserMenu className={styles.user} />
+          </Suspense>
           <main>{children}</main>
         </div>
       </body>

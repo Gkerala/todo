@@ -7,66 +7,82 @@
 - 시간이 지났는데 체크가 없으면 코치가 말을 겁니다. (예: "💊 '아침 약' 시간이 10분 지났어요!")
 - 맨 위 **"지금 할 일" 카드**에 남은 시간과 진행 막대, 다음 일정을 보여 줍니다.
 - 식사는 **먹은 음식**, 운동은 **몇 분 했는지** 기록합니다. (다이어트 기록)
+- 앱이 열려 있으면 루틴 시간에 **종소리 + 배너**로 알려 줍니다.
 
-자세한 요구사항은 [PRD.md](PRD.md), 표 설계는 [DB.md](DB.md)를 보세요.
+자세한 요구사항은 [PRD.md](PRD.md), 표 설계는 [DB.md](DB.md), 배포 준비물은 [DEPLOY.md](DEPLOY.md)를 보세요.
 
 ## 진행 상황
 
 | 단계 | 내용 | 상태 |
 |---|---|---|
 | 길 A | 로컬 SQLite(`todo.db`)에 저장, CRUD, 코치, 화면 | ✅ 완료 |
-| 길 B | Supabase로 저장소 전환 + 로그인(구글/이메일) + RLS | ⏳ 예정 |
-| 배포 | Render 배포 준비물 정리 | ⏳ 예정 |
+| 길 B | Supabase로 저장소 전환 + 이메일 로그인 + RLS | ✅ 완료 (구글 로그인은 예정) |
+| 배포 | Render 배포 준비물 정리 | ✅ [DEPLOY.md](DEPLOY.md) (실제 배포는 선택) |
 
-## 실행 방법 (길 A)
+## 실행 방법
 
 ```bash
 npm install
-cp .env.example .env.local   # 선택: 기본값만 써도 실행된다
-npm run dev
+cp .env.example .env.local   # 값 채우기 (아래)
+npm run dev                  # http://localhost:3000
 ```
 
-브라우저에서 http://localhost:3000 을 엽니다. 처음 실행하면 `todo.db` 파일과 표가 자동으로 만들어집니다.
-개발 중에는 터미널에 실행되는 SQL이 출력됩니다. 배포 환경에서는 사용자 기록이 로그에 남지 않도록 꺼집니다.
+`.env.local`의 `DB_PROVIDER`로 저장소를 고릅니다. **화면 코드는 그대로이고 저장소만 바뀝니다.**
 
-- `npm run dev`: **이 컴퓨터에서만** 접속됩니다 (`127.0.0.1`). 길 A에는 로그인이 없어서, 같은 와이파이의 다른 사람이 데이터를 보거나 바꾸지 못하게 막아 둔 것입니다.
+| `DB_PROVIDER` | 저장 위치 | 로그인 | 준비 |
+|---|---|---|---|
+| `sqlite` (길 A) | 내 컴퓨터의 `todo.db` | 없음 | 없음. 처음 실행하면 표가 자동으로 만들어진다 |
+| `supabase` (길 B) | Supabase PostgreSQL | 이메일 + 비밀번호 | ① Supabase 프로젝트 생성 ② SQL Editor에서 [supabase/schema.sql](supabase/schema.sql) 실행 ③ `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` 입력 |
+
+- 개발 중에는 터미널에 실행되는 SQL이 출력됩니다(길 A). 배포 환경에서는 사용자 기록이 로그에 남지 않도록 꺼집니다.
+- `npm run dev`: **이 컴퓨터에서만** 접속됩니다 (`127.0.0.1`). 로그인이 없는 길 A의 데이터를 같은 와이파이의 다른 사람이 보거나 바꾸지 못하게 막아 둔 것입니다.
 - `npm run dev:phone`: 같은 와이파이의 폰에서 확인할 때만 씁니다. 믿을 수 있는 네트워크에서만 켜세요.
+- `npm run test:rls`: 두 계정으로 RLS를 확인합니다 (아래 "확인 기록 (길 B)").
 
 ## 기술
 
 | 역할 | 기술 |
 |---|---|
-| 프레임워크 | Next.js 16 (App Router, Server Actions) + TypeScript |
+| 프레임워크 | Next.js 16 (App Router, Server Actions, proxy) + TypeScript |
 | 스타일 | CSS Modules, CSS 변수로 다크모드 (`prefers-color-scheme`) |
 | DB (길 A) | SQLite 파일 + Drizzle ORM + libsql 드라이버 |
-| DB (길 B) | Supabase(PostgreSQL) + supabase-js, RLS |
+| DB (길 B) | Supabase(PostgreSQL) + supabase-js + `@supabase/ssr`, RLS |
+| 로그인 (길 B) | Supabase Auth (이메일 + 비밀번호), JWT를 쿠키에 저장 |
 
 ## 구조와 설계 원칙
 
 ```
 src/
+├─ proxy.ts               (길 B) 모든 요청의 문지기: JWT 갱신, 로그인 안 했으면 /login으로
 ├─ app/
 │  ├─ page.tsx            오늘 화면 (서버에서 DB 읽기)
 │  ├─ routines/page.tsx   루틴 관리 화면
+│  ├─ login/              (길 B) 로그인/회원가입/로그아웃
 │  └─ actions.ts          서버 액션 = 백엔드 API (입력 검사 후 저장소 호출)
 ├─ components/            화면 부품 (브라우저에서 실행)
 ├─ lib/
 │  ├─ repo/               저장소: DB에 접근하는 유일한 곳 (server-only)
 │  │  ├─ types.ts         저장소 약속(interface)
-│  │  ├─ sqlite.ts        길 A 구현
-│  │  └─ index.ts         DB_PROVIDER로 저장소 선택
+│  │  ├─ sqlite.ts        길 A 구현 (Drizzle)
+│  │  ├─ supabase.ts      길 B 구현 (supabase-js, 사용자 JWT로 접속)
+│  │  └─ index.ts         DB_PROVIDER로 저장소 선택, 길 B는 로그인한 사용자 확인
+│  ├─ supabase/           (길 B) 서버용 Supabase 클라이언트, 설정값
 │  ├─ coach.ts            규칙 기반 코치 (순수 함수, 나중에 AI 코치로 교체 가능)
 │  ├─ defaultRoutines.ts  기상/취침 시간 → 기본 루틴
 │  ├─ dayItems.ts         시간표, "지금 할 일", 알람 대상 계산
 │  ├─ chime.ts            알람 종소리 (Web Audio, 소리 파일 없음)
 │  └─ time.ts             날짜/시간 계산 (한국 시간 기준)
 └─ db/                    길 A 표 정의와 생성 SQL
+supabase/schema.sql       길 B 표 + 권한 + RLS 정책
+scripts/rls-test.mjs      길 B RLS 확인 스크립트
 ```
 
-- **화면은 백엔드에만, DB에는 백엔드만**: 화면 컴포넌트는 서버 액션만 부르고, DB 코드는 `server-only`로 막아 브라우저 번들에 들어가지 못합니다.
-- **내 것만**: 저장소는 만들 때 주인(owner)이 정해지고, 모든 쿼리에 `user_id = owner` 조건이 붙습니다. 체크할 때는 그 루틴이 내 것인지 먼저 확인합니다.
+- **화면은 백엔드에만, DB에는 백엔드만**: 화면 컴포넌트는 서버 액션만 부르고, DB 코드는 `server-only`로 막아 브라우저 번들에 들어가지 못합니다. Supabase 키도 `NEXT_PUBLIC_` 없이 서버에서만 읽습니다.
+- **내 것만 (이중 방어)**: 저장소는 만들 때 주인(owner)이 정해지고, 모든 쿼리에 `user_id = owner` 조건이 붙습니다. 길 B에서는 여기에 더해 **DB의 RLS**가 JWT의 사용자 id(`auth.uid()`)로 한 번 더 막습니다. 코드에서 조건을 빠뜨려도 남의 행은 돌아오지 않습니다.
+- **관리자 키를 쓰지 않음**: 길 B는 공개용(publishable) 키 + 로그인한 사용자의 JWT로만 접속합니다. RLS를 건너뛰는 secret(service_role) 키는 앱 어디에도 없습니다.
+- **로그인 확인은 서버에서**: `getUser()`가 JWT를 Supabase Auth 서버에 다시 확인하므로 위조된 쿠키를 믿지 않습니다. 비밀번호는 우리 DB가 아니라 Supabase Auth가 해시로 보관합니다.
 - **입력은 서버에서 다시 검사**: 브라우저에서 온 값은 조작될 수 있으므로 `actions.ts`에서 형식, 길이, 시간 순서를 검사합니다. DB에도 CHECK/UNIQUE 제약을 걸어 두 번 막습니다.
-- **SQL 주입 방지**: Drizzle이 값을 SQL 문장과 따로 전달합니다(파라미터화). 터미널 로그의 `params: [...]`에서 확인할 수 있습니다.
+- **SQL 주입 방지**: Drizzle과 supabase-js가 값을 SQL 문장과 따로 전달합니다(파라미터화).
 - **비밀값**: `.env*`와 `todo.db`는 `.gitignore`에 있어 올라가지 않습니다.
 - **XSS**: 사용자가 쓴 글은 React가 글자로만 그려서 코드로 실행되지 않습니다 (`dangerouslySetInnerHTML` 사용 안 함).
 - **로그**: SQL 로그(값 포함)는 개발 환경에서만 켭니다.
@@ -84,3 +100,26 @@ src/
 - [x] **개발 서버를 껐다 켠 뒤에도** 체크 기록과 수정한 루틴이 그대로 남음
 - [x] 폰 화면 크기(375px) + 다크모드 확인
 - [x] 루틴 알람: 소리 알림 켜기 → 2분 뒤 시작하는 테스트 루틴을 만들고 기다림 → 그 분 정각에 "⏰ 지금 '알람 테스트' 시간이에요!" 배너 표시 → 확인으로 닫힘 (테스트 루틴은 삭제)
+
+## 확인 기록 (길 B: Supabase + RLS)
+
+2026-10-29, Supabase 프로젝트에 [supabase/schema.sql](supabase/schema.sql)을 실행하고 `DB_PROVIDER=supabase`로 확인했습니다.
+
+- [x] 로그인하지 않고 `/`에 들어가면 `/login`으로 보내짐
+- [x] 계정 A, B를 각각 회원가입 → 각자 처음 시작 화면(기상/취침)에서 기본 루틴 생성
+- [x] 계정 B로 로그인하면 A의 루틴과 기록이 보이지 않음 (B는 빈 상태에서 시작)
+- [ ] Supabase Table Editor에서 행마다 `user_id`가 A, B로 나뉘어 저장된 것 확인 (스크린샷 예정)
+- [ ] 할 일 추가 → 새로고침, 개발 서버 재시작 후에도 남는지 확인 (스크린샷 예정)
+- [x] `npm run test:rls` (앱 화면을 거치지 않고 Supabase에 직접 요청) 결과:
+
+| 확인 | 결과 | 내용 |
+|---|---|---|
+| B가 A의 할 일 조회 | ✅ 통과 | 돌려받은 행 0개 |
+| B가 A의 할 일 수정 | ✅ 통과 | 수정된 행 0개, A가 다시 본 제목 그대로 |
+| B가 A의 할 일 삭제 | ✅ 통과 | 삭제된 행 0개, A의 할 일 남아 있음 |
+| B가 A 이름(user_id)으로 할 일 만들기 | ✅ 통과 | 거절됨 (42501, RLS 위반) |
+| B가 A의 루틴에 체크 만들기 | ✅ 통과 | 거절됨 (42501, RLS 위반) |
+| 로그인 없이 조회 | ✅ 통과 | 거절됨 (42501, 권한 없음) |
+| A가 자기 할 일 조회 | ✅ 통과 | 돌려받은 행 1개 (정상 동작) |
+
+> 테스트 계정은 Supabase의 **Confirm email**(가입 확인 메일)이 켜진 상태에서 메일 링크로 확인을 마친 뒤 사용했습니다. 무료 메일 발송 한도가 작아서, 계정을 많이 만들 때는 개발 중에만 끄는 것을 권장합니다.
