@@ -108,8 +108,8 @@ scripts/rls-test.mjs      길 B RLS 확인 스크립트
 - [x] 로그인하지 않고 `/`에 들어가면 `/login`으로 보내짐
 - [x] 계정 A, B를 각각 회원가입 → 각자 처음 시작 화면(기상/취침)에서 기본 루틴 생성
 - [x] 계정 B로 로그인하면 A의 루틴과 기록이 보이지 않음 (B는 빈 상태에서 시작)
-- [ ] Supabase Table Editor에서 행마다 `user_id`가 A, B로 나뉘어 저장된 것 확인 (스크린샷 예정)
-- [ ] 할 일 추가 → 새로고침, 개발 서버 재시작 후에도 남는지 확인 (스크린샷 예정)
+- [x] Supabase Table Editor에서 같은 `routines` 표에 `user_id`가 두 종류(A, B)로 섞여 저장된 것 확인
+- [x] 할 일 추가 → 완료 → 삭제, 새로고침(F5) 후에도 루틴이 남는 것 확인
 - [x] `npm run test:rls` (앱 화면을 거치지 않고 Supabase에 직접 요청) 결과:
 
 | 확인 | 결과 | 내용 |
@@ -121,5 +121,25 @@ scripts/rls-test.mjs      길 B RLS 확인 스크립트
 | B가 A의 루틴에 체크 만들기 | ✅ 통과 | 거절됨 (42501, RLS 위반) |
 | 로그인 없이 조회 | ✅ 통과 | 거절됨 (42501, 권한 없음) |
 | A가 자기 할 일 조회 | ✅ 통과 | 돌려받은 행 1개 (정상 동작) |
+
+## 스크린샷
+
+### 길 A (로컬 SQLite)
+| 개발 서버를 여러 번 껐다 켠 뒤에도 남아 있는 운동 기록(40분 · 걷기) |
+|---|
+| ![로컬 재시작 후](docs/screenshots/a1-local-after-restart.jpg) |
+
+### 길 B (Supabase)
+| 할 일 추가 | 완료 | 삭제 |
+|---|---|---|
+| ![추가](docs/screenshots/b1-supabase-add.png) | ![완료](docs/screenshots/b3-supabase-complete.png) | ![삭제](docs/screenshots/b3-supabase-delete.png) |
+
+| 새로고침(F5) 후에도 남은 루틴 (계정 A, 취침 12:00) | 계정 B로 로그인한 화면 (취침 23:00, A의 루틴이 보이지 않음) |
+|---|---|
+| ![새로고침 후](docs/screenshots/b2-supabase-after-refresh.png) | ![계정 B](docs/screenshots/b-rls-account-b-view.png) |
+
+**Supabase Table Editor (관리자 화면)**: 한 `routines` 표 안에 `user_id`가 `8c6808bd…`(A)와 `067e5a4e…`(B) 두 종류로 함께 저장되어 있습니다. 관리자 화면(Role postgres)에서는 모두 보이지만, 앱에서는 RLS 때문에 각자 자기 행만 받습니다.
+
+![Table Editor](docs/screenshots/b4-supabase-table-editor.png)
 
 > 테스트 계정은 Supabase의 **Confirm email**(가입 확인 메일)이 켜진 상태에서 메일 링크로 확인을 마친 뒤 사용했습니다. 무료 메일 발송 한도가 작아서, 계정을 많이 만들 때는 개발 중에만 끄는 것을 권장합니다.
