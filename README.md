@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧭 1:1 자기관리 코치
 
-## Getting Started
+할 일을 정해 놓고도 제대로 못 하는 사람이 많습니다.
+이 앱은 **사람마다 1:1 코치처럼** 기상부터 취침까지 하루 루틴(식사, 약, 공부, 운동, 취침)을 챙겨 주는 투두 앱입니다.
 
-First, run the development server:
+- 처음에 **기상/취침 시간**만 입력하면 코치가 **기본 루틴**을 만들어 주고, 사용자는 고치기만 합니다.
+- 시간이 지났는데 체크가 없으면 코치가 말을 겁니다. (예: "💊 '아침 약' 시간이 10분 지났어요!")
+- 맨 위 **"지금 할 일" 카드**에 남은 시간과 진행 막대, 다음 일정을 보여 줍니다.
+- 식사는 **먹은 음식**, 운동은 **몇 분 했는지** 기록합니다. (다이어트 기록)
+
+자세한 요구사항은 [PRD.md](PRD.md), 표 설계는 [DB.md](DB.md)를 보세요.
+
+## 진행 상황
+
+| 단계 | 내용 | 상태 |
+|---|---|---|
+| 길 A | 로컬 SQLite(`todo.db`)에 저장, CRUD, 코치, 화면 | ✅ 완료 |
+| 길 B | Supabase로 저장소 전환 + 로그인(구글/이메일) + RLS | ⏳ 예정 |
+| 배포 | Render 배포 준비물 정리 | ⏳ 예정 |
+
+## 실행 방법 (길 A)
 
 ```bash
+npm install
+cp .env.example .env.local   # 선택: 기본값만 써도 실행된다
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 http://localhost:3000 을 엽니다. 처음 실행하면 `todo.db` 파일과 표가 자동으로 만들어집니다.
+터미널에는 실행되는 SQL이 출력됩니다 (Drizzle `logger: true`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 기술
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 역할 | 기술 |
+|---|---|
+| 프레임워크 | Next.js 16 (App Router, Server Actions) + TypeScript |
+| 스타일 | CSS Modules, CSS 변수로 다크모드 (`prefers-color-scheme`) |
+| DB (길 A) | SQLite 파일 + Drizzle ORM + libsql 드라이버 |
+| DB (길 B) | Supabase(PostgreSQL) + supabase-js, RLS |
 
-## Learn More
+## 구조와 설계 원칙
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├─ app/
+│  ├─ page.tsx            오늘 화면 (서버에서 DB 읽기)
+│  ├─ routines/page.tsx   루틴 관리 화면
+│  └─ actions.ts          서버 액션 = 백엔드 API (입력 검사 후 저장소 호출)
+├─ components/            화면 부품 (브라우저에서 실행)
+├─ lib/
+│  ├─ repo/               저장소: DB에 접근하는 유일한 곳 (server-only)
+│  │  ├─ types.ts         저장소 약속(interface)
+│  │  ├─ sqlite.ts        길 A 구현
+│  │  └─ index.ts         DB_PROVIDER로 저장소 선택
+│  ├─ coach.ts            규칙 기반 코치 (순수 함수, 나중에 AI 코치로 교체 가능)
+│  ├─ defaultRoutines.ts  기상/취침 시간 → 기본 루틴
+│  ├─ dayItems.ts         시간표, "지금 할 일" 계산
+│  └─ time.ts             날짜/시간 계산 (한국 시간 기준)
+└─ db/                    길 A 표 정의와 생성 SQL
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **화면은 백엔드에만, DB에는 백엔드만**: 화면 컴포넌트는 서버 액션만 부르고, DB 코드는 `server-only`로 막아 브라우저 번들에 들어가지 못합니다.
+- **내 것만**: 저장소는 만들 때 주인(owner)이 정해지고, 모든 쿼리에 `user_id = owner` 조건이 붙습니다. 체크할 때는 그 루틴이 내 것인지 먼저 확인합니다.
+- **입력은 서버에서 다시 검사**: 브라우저에서 온 값은 조작될 수 있으므로 `actions.ts`에서 형식, 길이, 시간 순서를 검사합니다. DB에도 CHECK/UNIQUE 제약을 걸어 두 번 막습니다.
+- **SQL 주입 방지**: Drizzle이 값을 SQL 문장과 따로 전달합니다(파라미터화). 터미널 로그의 `params: [...]`에서 확인할 수 있습니다.
+- **비밀값**: `.env*`와 `todo.db`는 `.gitignore`에 있어 올라가지 않습니다.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 확인 기록 (길 A)
 
-## Deploy on Vercel
+2026-10-29, 로컬 개발 서버에서 직접 확인했습니다.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] 기상 07:00 / 취침 23:00 입력 → 기본 루틴 8개 생성
+- [x] 운동 루틴 체크(40분, 걷기) → "이번 주 운동 총 40분" 코치 메시지
+- [x] 할 일 추가 → 완료 → 삭제
+- [x] 끝 시간이 시작보다 빠르면 "끝 시간은 시작 시간보다 늦어야 해요." 오류
+- [x] 루틴 수정(시간, 요일 월~금) → 토요일 화면에서 빠짐, 미래 날짜는 체크 불가
+- [x] **개발 서버를 껐다 켠 뒤에도** 체크 기록과 수정한 루틴이 그대로 남음
+- [x] 폰 화면 크기(375px) + 다크모드 확인

@@ -33,7 +33,10 @@
    - 칼로리 입력과 자동 계산은 과제 제출 후에 추가한다.
 
 ## [기본 조건]
-- 로그인해서 내 루틴과 할 일은 나만 본다. (Supabase Auth, GitHub 로그인)
+- 로그인해서 내 루틴과 할 일은 나만 본다. (Supabase Auth)
+  - **구글로 계속하기** (주 로그인: 버튼 하나로 가입 + 로그인)
+  - **이메일 + 비밀번호** (보조: 회원가입 화면 / 로그인 화면)
+  - 로그인 상태는 Supabase가 발급하는 **JWT**(쿠키에 저장)로 증명하고, RLS가 JWT의 사용자 id로 행을 걸러 낸다.
 - 1분마다 화면 자동 갱신
 - 폰에서도 보기 좋게, 다크모드 지원
 
@@ -49,7 +52,7 @@
 - Supabase에서는 **RLS(행 수준 보안)** 를 켜고, 로그인한 사용자가 자기 데이터만 조회/추가/수정/삭제하도록 정책을 만든다.
 
 ## [기술]
-Next.js(App Router) + TypeScript / CSS Modules / Drizzle + libsql(길 A) / supabase-js(길 B) / Supabase Auth
+Next.js(App Router) + TypeScript / CSS Modules / Drizzle + libsql(길 A) / supabase-js(길 B) / Supabase Auth(구글 + 이메일)
 
 ## [완료 기준]
 - [ ] 기상/취침 시간을 넣으면 기본 루틴이 만들어지고, 고치거나 지울 수 있다

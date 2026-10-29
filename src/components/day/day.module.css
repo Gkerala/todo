@@ -1,0 +1,340 @@
+.page {
+  display: grid;
+  gap: 16px;
+}
+
+/* ── 지금 할 일 카드 ── */
+.nowCard {
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.nowLabel {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.nowTitle {
+  margin: 4px 0 6px;
+  font-size: 1.6rem;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+.nowRemaining {
+  margin: 0 0 10px;
+}
+
+.nowRemaining strong {
+  font-size: 1.4rem;
+}
+
+.progress {
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-text) 25%, transparent);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-text);
+  transition: width 0.4s ease;
+}
+
+.nextLine {
+  margin: 12px 0 0;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+/* ── 코치 ── */
+.coach {
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.coachLabel {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.coachList {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coachMsg {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.alert {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.praise {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.info {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+/* ── 날짜 버튼 ── */
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day {
+  display: grid;
+  justify-items: center;
+  padding: 8px 0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  text-decoration: none;
+}
+
+.dayName {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.dayNum {
+  font-weight: 700;
+}
+
+.dayToday {
+  border-color: var(--accent);
+}
+
+.daySelected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.daySelected .dayName {
+  color: inherit;
+}
+
+/* ── 시간표 ── */
+.section {
+  display: grid;
+  gap: 8px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.todayTag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+
+.empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.done .itemTitle {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.time {
+  display: grid;
+  align-content: start;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeEnd {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.itemTitle {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.controls input {
+  flex: 1 1 140px;
+  min-height: 38px;
+}
+
+.controls .minutes {
+  flex: 0 0 80px;
+}
+
+.checkButton {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.doneButton {
+  background: var(--ok-soft);
+  border-color: transparent;
+  color: var(--ok);
+}
+
+.deleteButton {
+  color: var(--danger);
+}
+
+.future {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.nowLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.nowLine::before,
+.nowLine::after {
+  content: "";
+  height: 2px;
+  background: var(--danger);
+}
+
+.nowLine::before {
+  width: 12px;
+}
+
+.nowLine::after {
+  flex: 1;
+}
+
+/* ── 할 일 추가 ── */
+.addForm {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.timeRow {
+  display: flex;
+  gap: 8px;
+}
+
+.timeRow label {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+}
+
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
