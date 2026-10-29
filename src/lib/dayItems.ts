@@ -95,6 +95,16 @@ export function findNowAndNext(timed: DayItem[], nowMinutes: number): NowAndNext
   };
 }
 
+/** 알람용: 지난 확인(prev분) 뒤부터 지금(now분)까지 시작 시간이 된, 아직 안 한 일 중 가장 최근 것 */
+export function findDue(timed: DayItem[], prevMinutes: number, nowMinutes: number): DayItem | null {
+  if (nowMinutes <= prevMinutes) return null; // 같은 분이거나 자정이 지난 경우
+  const due = timed.filter((i) => {
+    const start = toMinutes(i.start!);
+    return !i.done && start > prevMinutes && start <= nowMinutes;
+  });
+  return due.at(-1) ?? null;
+}
+
 export function emojiOf(item: DayItem): string {
   return item.kind ? KIND_INFO[item.kind].emoji : "📝";
 }

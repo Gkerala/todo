@@ -338,3 +338,44 @@
   color: var(--accent-text);
   font-weight: 700;
 }
+
+/* ── 루틴 알람 ── */
+.alarmBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+  color: var(--warn);
+  border: 2px solid var(--warn);
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+.alarmDismiss {
+  flex-shrink: 0;
+  background: var(--warn);
+  border-color: var(--warn);
+  color: var(--card);
+  font-weight: 700;
+}
+
+.soundRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.soundToggle[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.soundHint {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
