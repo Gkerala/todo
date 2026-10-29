@@ -9,7 +9,8 @@ import type { Repo } from "./types";
 function connect() {
   return drizzle({
     connection: { url: process.env.SQLITE_URL ?? "file:todo.db" },
-    logger: true, // 실행되는 SQL을 터미널에 출력한다 (학습용)
+    // 개발할 때만 실행되는 SQL을 터미널에 출력한다 (학습용). 배포 로그에 사용자 기록이 남지 않게 한다.
+    logger: process.env.NODE_ENV === "development",
   });
 }
 type Db = ReturnType<typeof connect>;
